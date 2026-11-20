@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>个人财务</title>
+  <link rel="stylesheet" href="/app.css?v=20261120-sort">
+  <link rel="stylesheet" href="/analysis.css?v=20261120-catalog">
+</head>
+<body>
+<main>
+  <header class="site-header">
+    <div class="brand"><div class="brand-mark" aria-hidden="true">¥</div><div><p class="eyebrow">PERSONAL FINANCE</p><h1>个人财务</h1><p class="header-subtitle">把每一笔收支，变成看得懂的生活轨迹。</p></div></div>
+    <nav class="nav-tabs" aria-label="主菜单">
+      <button class="nav-tab active" data-view="reports-view">报表</button>
+      <button class="nav-tab" data-view="analysis-view">账务分析</button>
+      <button class="nav-tab" data-view="categories-view">分类管理</button>
+    </nav>
+  </header>
+
+  <section id="reports-view" class="view">
+    <section class="toolbar">
+      <label>报表周期 <select id="period"><option value="WEEK">周度</option><option value="MONTH" selected>月度</option><option value="YEAR">年度</option><option value="CUSTOM">自定义</option></select></label>
+      <label id="date-field">基准日期 <input id="date" type="date"></label>
+      <label class="custom-field">开始日期 <input id="from" type="date"></label>
+      <label class="custom-field">结束日期 <input id="to" type="date"></label>
+      <button class="secondary" id="refresh">刷新报表</button>
+      <button class="import-trigger" id="import-trigger" type="button"><span aria-hidden="true">＋</span> 导入账单</button>
+    </section>
+
+    <section class="cards"><article class="metric income-card"><span>收入</span><strong id="income">¥0.00</strong><small>本周期累计</small></article><article class="metric expense-card"><span>支出</span><strong id="expense">¥0.00</strong><small>本周期累计</small></article><article class="metric balance-card"><span>结余</span><strong id="balance">¥0.00</strong><small>收入减去支出</small></article></section>
+    <section class="grid"><article class="panel chart-panel"><div class="panel-title"><div><p class="section-kicker">OVERVIEW</p><h2>支出分类地图</h2><p class="muted">面积越大，代表本周期支出越多。点击色块查看分类明细。</p></div><span class="panel-icon">◔</span></div><div id="treemap" class="treemap" aria-label="支出分类树状图"></div></article><article class="panel insight-panel"><div class="panel-title"><div><p class="section-kicker">TREND</p><h2 id="period-expense-title">支出趋势</h2><p id="period-expense-subtitle" class="muted">按时间查看支出分布</p></div><span class="panel-icon">✦</span></div><div id="period-chart" class="period-chart" aria-label="按时间统计的支出柱状图"></div></article></section>
+    <section class="panel"><div class="panel-title"><div><h2>重复交易核对</h2><p class="muted">核对当前报表周期内的疑似重复，不会自动改账。每次最多核对一年。</p></div><button type="button" id="review-duplicates">检查本周期</button></div><div id="duplicate-review" aria-live="polite"></div></section>
+    <section class="panel"><div class="panel-title"><div><h2 id="transaction-title">交易明细</h2><p class="muted">仅展示当前报表周期内已确认交易</p></div><span id="transaction-count" class="filter-result">当前显示 0 笔交易</span></div><div class="filter-bar transaction-filters" aria-label="交易明细筛选"><div class="filter-field"><label for="report-category">分类</label><div class="filter-control"><select id="report-category"><option value="">全部分类</option></select><button type="button" class="filter-clear" data-clear-filter="report-category" aria-label="清除分类筛选" title="清除分类筛选" disabled><span aria-hidden="true">×</span></button></div></div><div class="filter-field"><label for="direction-filter">收支</label><div class="filter-control"><select id="direction-filter"><option value="ALL">全部收支</option><option value="INCOME">收入</option><option value="EXPENSE">支出</option><option value="NEUTRAL">中性</option></select><button type="button" class="filter-clear" data-clear-filter="direction-filter" aria-label="清除收支筛选" title="清除收支筛选" disabled><span aria-hidden="true">×</span></button></div></div><div class="filter-field"><label for="transaction-from">开始时间</label><div class="filter-control"><input id="transaction-from" type="date"><button type="button" class="filter-clear" data-clear-filter="transaction-from" aria-label="清除开始时间筛选" title="清除开始时间筛选" disabled><span aria-hidden="true">×</span></button></div></div><div class="filter-field"><label for="transaction-to">结束时间</label><div class="filter-control"><input id="transaction-to" type="date"><button type="button" class="filter-clear" data-clear-filter="transaction-to" aria-label="清除结束时间筛选" title="清除结束时间筛选" disabled><span aria-hidden="true">×</span></button></div></div><div class="filter-field"><label for="source-filter">来源</label><div class="filter-control"><select id="source-filter"><option value="ALL">全部来源</option></select><button type="button" class="filter-clear" data-clear-filter="source-filter" aria-label="清除来源筛选" title="清除来源筛选" disabled><span aria-hidden="true">×</span></button></div></div></div><div class="table-wrap"><table><thead><tr><th>交易对方／摘要</th><th>来源</th><th>方向</th><th>分类</th><th aria-sort="none"><button type="button" data-sort="amountUnits">金额<span aria-hidden="true">↕</span></button></th><th aria-sort="descending"><button type="button" data-sort="occurredAt">时间<span aria-hidden="true">↓</span></button></th></tr></thead><tbody id="transactions"></tbody></table></div></section>
+  </section>
+
+  <section id="analysis-view" class="view hidden monthly-journal">
+    <div class="journal-masthead"><div><span class="journal-wordmark">THE MONTHLY LEDGER</span><h2>账务月报<span>每月收支，一页读懂。</span></h2></div><div class="journal-controls"><label class="journal-sr-only" for="analysis-year">选择分析年份</label><select id="analysis-year"></select><button id="analysis-refresh" type="button" aria-label="刷新月度归档">刷新归档 <span aria-hidden="true">↻</span></button></div></div>
+    <nav id="analysis-issues" class="journal-issues" aria-label="月报归档"></nav>
+    <div id="analysis-content" aria-live="polite"><p class="journal-state">选择年份，阅读这一年的月度总结。</p></div>
+  </section>
+
+  <section id="categories-view" class="view hidden monthly-journal">
+    <header class="journal-masthead"><div><span class="journal-wordmark">CATEGORIES</span><h2>分类管理</h2></div></header>
+    <article class="journal-article category-section">
+      <h3>交易分类</h3>
+      <form id="category-form" class="catalog-form">
+        <label>分类名称<input id="category-name" required></label>
+        <label>排序<input id="category-order" type="number" value="100"></label>
+        <button>新增分类</button>
+      </form>
+      <div id="category-manager"></div>
+    </article>
+    <article class="journal-article category-section">
+      <h3>自动分类规则</h3>
+      <form id="rule-form" class="catalog-form">
+        <label>目标分类<select id="rule-category"></select></label>
+        <label>账单来源<select id="rule-source"><option value="">全部来源</option><option value="WECHAT">微信</option><option value="ALIPAY">支付宝</option><option value="CMB">招商银行</option></select></label>
+        <label>匹配关键词<input id="rule-keyword" placeholder="交易对方或商品关键词"></label>
+        <label>优先级<input id="rule-priority" type="number" value="0"></label>
+        <button>新增规则</button>
+      </form>
+      <div id="rule-manager"></div>
+      <footer class="catalog-footer"><p>人工分类优先于自动规则，重新分类时会保留人工选择。</p><button class="secondary" id="recategorize">按规则重新分类</button></footer>
+    </article>
+  </section>
+
+  <div id="import-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="import-title">
+    <div class="modal-backdrop" data-close-import></div>
+    <section class="modal-card"><div class="panel-title"><div><p class="section-kicker">IMPORT</p><h2 id="import-title">导入账单</h2><p class="muted">支持 ZIP、Excel、CSV 和 PDF。文件只会在确认后正式入账。</p></div><button class="modal-close secondary" type="button" data-close-import aria-label="关闭导入窗口">×</button></div><div class="folder-scan"><div class="folder-scan-content"><b>即将解析的账单</b><small>来自 bill/pending/，加密 ZIP 请逐个填写密码</small><div id="pending-files" class="pending-files">正在读取文件列表…</div></div><button id="scan-button" class="secondary" type="button">解析文件夹</button></div><form id="upload-form" class="upload-form"><label for="bill-files">选择账单附件</label><label class="zip-password" for="zip-password">上传 ZIP 的密码（多个 ZIP 需使用相同密码）<input id="zip-password" type="password" autocomplete="off" placeholder="仅本次上传使用，不会保存"></label><div class="upload-row"><input id="bill-files" name="files" type="file" accept=".zip,.xlsx,.xls,.csv,.pdf" multiple required><button id="upload-button" type="submit">上传并解析</button></div></form><div id="upload-results" class="upload-results" aria-live="polite"></div><div class="batch-heading"><h3>最近导入批次</h3><span class="muted">待确认批次可在这里入账</span></div><div id="batches">暂无导入批次</div></section>
+  </div>
+</main>
+  <script src="/app.js?v=20261120-sort"></script>
+  <script src="/analysis.js?v=20261119-month-display"></script>
+</body>
+</html>
